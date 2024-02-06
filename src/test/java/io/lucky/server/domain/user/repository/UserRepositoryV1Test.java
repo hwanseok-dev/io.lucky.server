@@ -23,7 +23,7 @@ class UserRepositoryV1Test {
         dataSource.setUrl(conf.db_url);
         dataSource.setUsername(conf.db_username);
         dataSource.setPassword(conf.db_password);
-        this.repository = new UserRepositoryV1(dataSource);
+        this.repository = new UserRepositoryV1Impl(dataSource);
     }
 
     @Test

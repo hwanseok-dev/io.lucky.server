@@ -2,8 +2,8 @@ package io.lucky.server.domain.user.service;
 
 import io.lucky.server.common.Configure;
 import io.lucky.server.domain.user.entity.User;
-import io.lucky.server.domain.user.repository.UserRepository;
 import io.lucky.server.domain.user.repository.UserRepositoryV1;
+import io.lucky.server.domain.user.repository.UserRepositoryV1Impl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,14 +17,14 @@ class UserServiceV1Test {
     private Configure conf;
 
     private UserRepositoryV1 userRepository;
-    private UserServiceV1 userServiceV1;
+    private UserServiceV1Impl userServiceV1;
 
     @BeforeEach
     private void beforeEach(){
         conf = Configure.getInstance();
         DriverManagerDataSource dataSource = new DriverManagerDataSource(conf.db_url, conf.db_username, conf.db_password);
-        this.userRepository = new UserRepositoryV1(dataSource);
-        this.userServiceV1 = new UserServiceV1(userRepository);
+        this.userRepository = new UserRepositoryV1Impl(dataSource);
+        this.userServiceV1 = new UserServiceV1Impl(userRepository);
     }
 
     @Test

@@ -41,13 +41,13 @@ public abstract class ConfigReload extends Thread {
         }
         lastReloadTime = now;
 
-
         long nowModifiedTime = file.lastModified();
         if (nowModifiedTime == lastModifiedTime) {
             return;
         }
         lastModifiedTime = nowModifiedTime;
         Properties temp = new Properties();
+
         if (file.canRead()) {
             FileInputStream in = null;
             try {
@@ -66,7 +66,7 @@ public abstract class ConfigReload extends Thread {
     }
 
     public File getConfFile(){
-        this.confPath = System.getProperty("lucky.conf.path", ".");
+        this.confPath = System.getProperty("lucky.conf.path", "./conf");
         return new File(confPath, getFileName());
     }
 

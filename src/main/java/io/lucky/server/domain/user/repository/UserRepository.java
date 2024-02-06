@@ -8,5 +8,7 @@ public interface UserRepository {
 
     public Long save(User user) throws SQLException;
     public User findById(Long id) throws SQLException;
+    public boolean existsById(Long id) throws SQLException;
     public void updateMoney(Long id, int money) throws SQLException;
+    void delete(Long id) throws SQLException;
 }

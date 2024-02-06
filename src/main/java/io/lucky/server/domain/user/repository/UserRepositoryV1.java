@@ -11,11 +11,11 @@ import java.util.NoSuchElementException;
 import static io.lucky.server.domain.user.config.DBConnection.getConnection;
 
 @Slf4j
-public class UserRepositoryImpl implements UserRepository {
+public class UserRepositoryV1 implements UserRepository {
 
     private final DataSource dataSource;
 
-    public UserRepositoryImpl(DataSource dataSource) {
+    public UserRepositoryV1(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -68,6 +68,30 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public boolean existsById(Long id) throws SQLException {
+        String sql = "select count(*) as count from user where id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setLong(1, id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                int count = rs.getInt("count");
+                return count > 0;
+            }
+            return false;
+        } catch (SQLException e) {
+            log.error("sql error", e);
+            throw e;
+        } finally {
+            close(conn, pstmt, null);
+        }
+    }
+
+    @Override
     public void updateMoney(Long id, int money) throws SQLException {
         String sql = "update user set money = ? where id = ?";
         Connection conn = null;
@@ -80,6 +104,26 @@ public class UserRepositoryImpl implements UserRepository {
             pstmt.setLong(2, id);
             int count = pstmt.executeUpdate();
             log.info("update money. count : {}", count);
+        } catch (SQLException e) {
+            log.error("sql error", e);
+            throw e;
+        } finally {
+            close(conn, pstmt, null);
+        }
+    }
+
+    @Override
+    public void delete(Long id) throws SQLException {
+        String sql = "delete from user where id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setLong(1, id);
+            int count = pstmt.executeUpdate();
+            log.info("delete user. id : {}", id);
         } catch (SQLException e) {
             log.error("sql error", e);
             throw e;

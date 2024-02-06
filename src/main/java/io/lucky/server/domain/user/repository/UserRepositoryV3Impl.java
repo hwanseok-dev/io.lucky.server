@@ -2,6 +2,7 @@ package io.lucky.server.domain.user.repository;
 
 import io.lucky.server.domain.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.stereotype.Repository;
 
@@ -9,21 +10,19 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.NoSuchElementException;
 
-import static io.lucky.server.domain.user.config.DBConnection.getConnection;
-
 @Slf4j
-@Repository
-public class UserRepositoryV2Impl implements UserRepositoryV2 {
+public class UserRepositoryV3Impl implements UserRepositoryV1 {
 
     private final DataSource dataSource;
 
-    public UserRepositoryV2Impl(DataSource dataSource) {
+    public UserRepositoryV3Impl(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
     @Override
-    public Long save(Connection conn, User user) throws SQLException {
+    public Long save(User user) throws SQLException {
         String sql = "insert into user (id, name, money) values (?, ?, ?)";
+        Connection conn = null;
         PreparedStatement pstmt = null;
         try {
             conn = getConnection();
@@ -37,13 +36,14 @@ public class UserRepositoryV2Impl implements UserRepositoryV2 {
             log.error("sql error", e);
             throw e;
         } finally {
-            close(pstmt, null);
+            close(conn, pstmt, null);
         }
     }
 
     @Override
-    public User findById(Connection conn, Long id) throws SQLException {
+    public User findById(Long id) throws SQLException {
         String sql = "select * from user where id = ?";
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
@@ -63,13 +63,14 @@ public class UserRepositoryV2Impl implements UserRepositoryV2 {
             log.error("sql error", e);
             throw e;
         } finally {
-            close(pstmt, rs);
+            close(conn, pstmt, null);
         }
     }
 
     @Override
-    public boolean existsById(Connection conn, Long id) throws SQLException {
+    public boolean existsById(Long id) throws SQLException {
         String sql = "select count(*) as count from user where id = ?";
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
@@ -86,13 +87,14 @@ public class UserRepositoryV2Impl implements UserRepositoryV2 {
             log.error("sql error", e);
             throw e;
         } finally {
-            close(pstmt, null);
+            close(conn, pstmt, null);
         }
     }
 
     @Override
-    public void updateMoney(Connection conn, Long id, int money) throws SQLException {
+    public void updateMoney(Long id, int money) throws SQLException {
         String sql = "update user set money = ? where id = ?";
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
@@ -106,13 +108,14 @@ public class UserRepositoryV2Impl implements UserRepositoryV2 {
             log.error("sql error", e);
             throw e;
         } finally {
-            close(pstmt, null);
+            close(conn, pstmt, null);
         }
     }
 
     @Override
-    public void delete(Connection conn, Long id) throws SQLException {
+    public void delete(Long id) throws SQLException {
         String sql = "delete from user where id = ?";
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
@@ -125,12 +128,23 @@ public class UserRepositoryV2Impl implements UserRepositoryV2 {
             log.error("sql error", e);
             throw e;
         } finally {
-            close(pstmt, null);
+            close(conn, pstmt, null);
         }
     }
 
-    private void close(Statement stmt, ResultSet rs) {
+    private void close(Connection conn, Statement stmt, ResultSet rs) {
         JdbcUtils.closeResultSet(rs);
         JdbcUtils.closeStatement(stmt);
+        // 트랜잭셔 동기화 매니저에서 릴리즈를 해야한다
+        // 트랜잭션 동기화 매니저가 관리하는 커넥션이 아닌 경우 해당 커넥션을 닫는다
+        DataSourceUtils.releaseConnection(conn, dataSource);
+    }
+
+    private Connection getConnection() throws SQLException {
+        // 트랜잭션 동기화 매니저에서 커넥션을 가져온다
+        // 트랜잭션 동기화 매니저에서 관리하는 커넥션이 없으면 생성해서 반환한다
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        log.info("get conn : {}, class : {}", conn, conn.getClass());
+        return conn;
     }
 }

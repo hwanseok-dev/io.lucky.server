@@ -3,6 +3,7 @@ package io.lucky.server.domain.user.repository;
 import io.lucky.server.domain.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
